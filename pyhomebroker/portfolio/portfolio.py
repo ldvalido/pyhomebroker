@@ -31,7 +31,8 @@ class Portfolio:
         if not result:
             return pd.DataFrame()
 
-        df = pd.DataFrame(result)
+        records = result if isinstance(result, list) else [result]
+        df = pd.json_normalize(records)
         if 'symbol' in df.columns:
             df = df.set_index('symbol')
 
