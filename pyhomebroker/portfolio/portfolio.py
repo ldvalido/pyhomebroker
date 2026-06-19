@@ -1,5 +1,6 @@
 from ..common import user_agent
 import requests as rq
+import pandas as pd
 
 class Portfolio:
 
@@ -25,6 +26,13 @@ class Portfolio:
 
         response = rq.post(url, json=payload, headers=headers, cookies=self.__auth.cookies, proxies=self.__proxies)
         response.raise_for_status()
-        response = response.json()
+        result = response.json().get('Result')
 
-        return response['Result']
+        if not result:
+            return pd.DataFrame()
+
+        df = pd.DataFrame(result)
+        if 'symbol' in df.columns:
+            df = df.set_index('symbol')
+
+        return df
