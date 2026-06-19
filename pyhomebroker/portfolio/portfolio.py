@@ -4,6 +4,16 @@ import pandas as pd
 
 class Portfolio:
 
+    _ASSET_TYPE_MAP = {
+        '0': 'Acciones',
+        '1': 'Titulos Publicos',
+        '3': 'Obligaciones Negociables',
+        '4': 'Moneda',
+        '7': 'Cedears',
+        '11': 'Efectivo',
+    }
+    _CURRENCY_MAP = {0: 'ARS', 1: 'USD'}
+
     def __init__(self, auth, proxy_url=None):
         self.__auth = auth
         self.__proxies = proxy_url
@@ -31,11 +41,29 @@ class Portfolio:
         if not result:
             return pd.DataFrame()
 
-        records = result if isinstance(result, list) else [result]
-        df = pd.json_normalize(records)
-        symbol_cols = ['symbol', 'especie', 'ticker', 'simbolo', 'Especie', 'Ticker', 'Symbol']
-        index_col = next((c for c in symbol_cols if c in df.columns), None)
-        if index_col:
-            df = df.set_index(index_col)
+        record = result if isinstance(result, dict) else (result[0] if result else None)
+        if not record:
+            return pd.DataFrame()
 
-        return df
+        positions = []
+        for subtotal in record.get('Activos', []):
+            asset_type = self._ASSET_TYPE_MAP.get(str(subtotal.get('TIPO', '')), str(subtotal.get('TIPO', '')))
+            for item in subtotal.get('Subtotal', []):
+                symbol = item.get('TICK') or item.get('NERE') or item.get('AMPL', '')
+                if not symbol:
+                    continue
+                positions.append({
+                    'symbol': str(symbol),
+                    'description': item.get('AMPL', ''),
+                    'quantity': float(item.get('CANT') or 0),
+                    'price': float(item.get('PCIO') or 0),
+                    'ammount': float(item.get('IMPO') or 0),
+                    'currency': self._CURRENCY_MAP.get(item.get('MONE', 0), 'ARS'),
+                    'asset_type': asset_type,
+                    'clearing_code': item.get('ESPE', ''),
+                })
+
+        if not positions:
+            return pd.DataFrame()
+
+        return pd.DataFrame(positions).set_index('symbol')
