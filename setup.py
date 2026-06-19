@@ -19,9 +19,18 @@
 # limitations under the License.
 #
 from setuptools import setup, find_packages
-from pyhomebroker import __version__
+import re
 import io
 from os import path
+
+def _get_version():
+    with open(path.join(path.dirname(__file__), 'pyhomebroker', '__init__.py'), encoding='utf-8') as f:
+        match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", f.read(), re.M)
+        if not match:
+            raise RuntimeError('Cannot find version string')
+        return match.group(1)
+
+__version__ = _get_version()
 
 here = path.abspath(path.dirname(__file__))
 
