@@ -24,6 +24,7 @@ from .home_broker_session import HomeBrokerSession
 from .online import Online
 from .history import History
 from .orders import Orders
+from .portfolio import Portfolio
 
 class HomeBroker:
 
@@ -111,6 +112,10 @@ class HomeBroker:
             proxy_url=proxy_url)
             
         self.orders = Orders(
+            auth=self.auth,
+            proxy_url=proxy_url)
+
+        self.portfolio = Portfolio(
             auth=self.auth,
             proxy_url=proxy_url)
 
