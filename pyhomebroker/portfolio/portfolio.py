@@ -33,7 +33,9 @@ class Portfolio:
 
         records = result if isinstance(result, list) else [result]
         df = pd.json_normalize(records)
-        if 'symbol' in df.columns:
-            df = df.set_index('symbol')
+        symbol_cols = ['symbol', 'especie', 'ticker', 'simbolo', 'Especie', 'Ticker', 'Symbol']
+        index_col = next((c for c in symbol_cols if c in df.columns), None)
+        if index_col:
+            df = df.set_index(index_col)
 
         return df
